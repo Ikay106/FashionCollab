@@ -1,0 +1,14 @@
+# Node.js
+node_modules/
+npm-debug.log
+.env
+
+# Build / dist
+dist/
+build/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/

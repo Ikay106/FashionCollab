@@ -7,5 +7,6 @@ const { requireAuth } = require('../middleware/auth.middleware');
 // Protected routes - must be logged in
 router.post('/', requireAuth, projectController.createProject);
 router.get('/my', requireAuth, projectController.getMyProjects);
+router.delete('/:id', requireAuth, projectController.deleteProject);
 
 module.exports = router;

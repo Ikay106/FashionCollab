@@ -44,3 +44,24 @@ exports.getMyProjects = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch projects' });
   }
 };
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    const result = await projectModel.deleteProject(projectId, userId);
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message.includes('not found') || error.message.includes('permission')) {
+      return res.status(404).json({ error: error.message });
+    }
+    console.error('Delete project error:', error);
+    res.status(500).json({ error: 'Failed to delete project' });
+  }
+};

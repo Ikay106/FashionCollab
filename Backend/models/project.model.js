@@ -16,8 +16,6 @@ async function createProject(userId, { title, description }) {
           user_id: userId,
           title,
           description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
         }
       ])
       .select()
@@ -56,8 +54,45 @@ async function getUserProjects(userId) {
 
 
 
+/**
+ * Delete a project by ID - only if it belongs to the user
+ * @param {string} projectId - The project ID to delete
+ * @param {string} userId - The authenticated user's ID (for ownership check)
+ * @returns {Promise<Object>} Success message or error
+ */
+async function deleteProject(projectId, userId) {
+  try {
+    // First check ownership
+    const { data: project, error: fetchError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!project) {
+      throw new Error('Project not found or you do not have permission to delete it');
+    }
+
+    // Perform delete
+    const { error: deleteError } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+
+    if (deleteError) throw deleteError;
+
+    return { message: 'Project deleted successfully' };
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+}
+
+// Add to exports
 module.exports = {
   createProject,
-  getUserProjects
-  // Add more functions later: getById, update, delete...
+  getUserProjects,
+  deleteProject  
 };

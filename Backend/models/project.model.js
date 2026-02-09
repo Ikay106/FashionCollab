@@ -90,9 +90,48 @@ async function deleteProject(projectId, userId) {
   }
 }
 
-// Add to exports
+/**
+ * Update a project by ID - only if it belongs to the user
+ * @param {string} projectId 
+ * @param {string} userId 
+ * @param {Object} updates - partial: { title?, description? }
+ */
+async function updateProject(projectId, userId, updates) {
+  try {
+    // Ownership check
+    const { data: project, error: fetchError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!project) {
+      throw new Error('Project not found or you do not have permission to update it');
+    }
+
+    // Partial update
+    const { data, error } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', projectId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { project: data };
+  } catch (error) {
+    console.error('Error updating project:', error);
+    throw error;
+  }
+}
+
+
 module.exports = {
   createProject,
   getUserProjects,
-  deleteProject  
+  deleteProject,
+  updateProject   // ← add this
 };

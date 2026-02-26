@@ -6,14 +6,20 @@ const projectModel = require('../models/project.model');
  */
 exports.createProject = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, location, shoot_date, status } = req.body;
     const userId = req.user.id; // From auth middleware
 
     if (!title) {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    const { project, error } = await projectModel.createProject(userId, { title, description });
+    const { project, error } = await projectModel.createProject(userId, { 
+      title,
+      description,
+      location,
+      shoot_date,
+      status
+     });
 
     if (error) throw error;
 
@@ -73,19 +79,22 @@ exports.updateProject = async (req, res) => {
   try {
     const projectId = req.params.id;
     const userId = req.user.id;
-    const { title, description } = req.body;
+    const { title, description, location, shoot_date, status } = req.body;
 
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
 
-    if (!title && !description) {
-      return res.status(400).json({ error: 'Provide at least one field to update (title or description)' });
+    if (!title && !description && !location && !shoot_date && !status) {
+      return res.status(400).json({ error: 'Provide at least one field to update' });
     }
 
     const updates = {};
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
+    if (location !== undefined) updates.location = location;
+    if (shoot_date !== undefined) updates.shoot_date = shoot_date;
+    if (status !== undefined) updates.status = status;
 
     const { project, error } = await projectModel.updateProject(projectId, userId, updates);
 

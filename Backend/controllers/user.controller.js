@@ -1,4 +1,4 @@
-const supabase = require('../lib/supabase');
+const { supabase } = require('../lib/supabase');
 
 exports.signup = async (req, res) => {
   try {
@@ -47,3 +47,4 @@ exports.login = async (req, res) => {
     res.status(401).json({ error: error.message });
   }
 };
+

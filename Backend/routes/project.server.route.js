@@ -8,5 +8,8 @@ const { requireAuth } = require('../middleware/auth.middleware');
 router.post('/', requireAuth, projectController.createProject);
 router.get('/my', requireAuth, projectController.getMyProjects);
 router.delete('/:id', requireAuth, projectController.deleteProject);
+router.patch('/:id', requireAuth, projectController.updateProject);
+router.post('/:id/invite', requireAuth, projectController.inviteToProject);
+router.patch('/:id/accept', requireAuth, projectController.acceptInvite);
 
 module.exports = router;

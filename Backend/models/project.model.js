@@ -7,7 +7,7 @@ const { supabase, supabaseAdmin } = require('../lib/supabase');
  * @param {Object} projectData - { title, description }
  * @returns {Promise<Object>} The created project or error
  */
-async function createProject(userId, { title, description }) {
+async function createProject(userId, { title, description, location, shoot_date, status = 'draft' }) {
   try {
     const { data, error } = await supabase
       .from('projects')
@@ -16,6 +16,9 @@ async function createProject(userId, { title, description }) {
           user_id: userId,
           title,
           description,
+          location,
+          shoot_date,
+          status
         }
       ])
       .select()

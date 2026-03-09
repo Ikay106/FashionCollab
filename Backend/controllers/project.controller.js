@@ -1,5 +1,7 @@
 // backend/controllers/project.controller.js
 const projectModel = require('../models/project.model');
+const { supabase, supabaseAdmin } = require('../lib/supabase');
+const path = require('path');
 
 /**
  * Create a new project (protected route)
@@ -159,5 +161,143 @@ exports.acceptInvite = async (req, res) => {
     }
     console.error('Accept invite error:', error);
     res.status(500).json({ error: 'Failed to accept invite' });
+  }
+};
+
+/**
+ * Upload a moodboard/reference image to a project
+ * Only owner or accepted collaborators can upload
+ */
+exports.uploadMoodboardImage = async (req, res) => {
+  try {
+    const projectId = Number(req.params.id);
+    const userId = req.user.id; // comes from requireAuth :contentReference[oaicite:0]{index=0}
+
+    // ✅ AuthZ: only owner OR accepted collaborator can upload
+    const { data: project, error: projectErr } = await supabaseAdmin
+      .from('projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectErr || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const isOwner = project.user_id === userId;
+
+    let isAcceptedCollaborator = false;
+    if (!isOwner) {
+      const { data: member, error: memberErr } = await supabaseAdmin
+        .from('project_members')
+        .select('accepted_at')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      isAcceptedCollaborator = !memberErr && !!member?.accepted_at;
+    }
+
+    if (!isOwner && !isAcceptedCollaborator) {
+      return res.status(403).json({ error: 'Not allowed to upload to this project' });
+    }
+
+    // ✅ Multer check
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded' });
+    }
+
+    const file = req.file;
+    const fileExtension = path.extname(file.originalname);
+    const fileName = `${projectId}/${Date.now()}${fileExtension}`;
+
+    // ✅ Upload to Storage using admin (bypasses Storage RLS)
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from('project-moodboards')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // ✅ Get public URL (bucket must be public)
+    const { data: urlData } = supabase.storage
+      .from('project-moodboards')
+      .getPublicUrl(fileName);
+
+    const imageUrl = urlData.publicUrl;
+
+    // ✅ Save metadata (use admin so table name quirks/RLS don’t block server)
+    const { error: dbError } = await supabaseAdmin
+      .from('project-images') // your actual table name
+      .insert({
+        project_id: projectId,
+        user_id: userId,
+        image_url: imageUrl,
+        file_name: file.originalname,
+      });
+
+    if (dbError) throw dbError;
+
+    return res.status(201).json({
+      message: 'Image uploaded successfully',
+      image_url: imageUrl,
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to upload image' });
+  }
+};
+
+/**
+ * List all moodboard images for a project
+ * Only owner or accepted members can view
+ */
+exports.getProjectImages = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    // Check permission (owner or accepted member)
+    const { data: project, error: projErr } = await supabase
+      .from('projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projErr || !project) return res.status(404).json({ error: 'Project not found' });
+
+    const isOwner = project.user_id === userId;
+
+    let isMember = false;
+    if (!isOwner) {
+      const { data: member } = await supabase
+        .from('project_members')
+        .select('accepted_at')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .single();
+
+      isMember = !!member?.accepted_at;
+    }
+
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ error: 'Not allowed to view this project' });
+    }
+
+    // Get images
+    const { data: images, error: imgErr } = await supabase
+      .from('project_images')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('uploaded_at', { ascending: false });
+
+    if (imgErr) throw imgErr;
+
+    res.json({ images: images || [] });
+  } catch (error) {
+    console.error('Get images error:', error);
+    res.status(500).json({ error: 'Failed to fetch images' });
   }
 };

@@ -46,7 +46,6 @@ const projectBaseSchema = Joi.object({
     })
 });
 
-// CREATE: title required, others optional
 const createProjectSchema = projectBaseSchema;
 
 // UPDATE: partial updates, at least one field required

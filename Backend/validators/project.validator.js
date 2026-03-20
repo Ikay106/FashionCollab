@@ -35,7 +35,7 @@ const projectBaseSchema = Joi.object({
     .allow(null)
     .messages({
       'date.base': 'Shoot date must be a valid date',
-      'date.greater': 'Shoot date must be in the future or null'
+      'date.greater': 'Shoot date must be in the future'
     }),
 
   status: Joi.string()

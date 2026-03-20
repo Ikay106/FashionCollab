@@ -1,19 +1,23 @@
-// backend/routes/project.server.route.js
 const express = require('express');
 const router = express.Router();
-const projectController = require('../controllers/project.controller');
 const { requireAuth } = require('../middleware/auth.middleware');
-const { validateCreateProject, validateUpdateProject } = require('../validators/project.validator');
 const { uploadImage } = require('../middleware/upload.middleware');
 
-// Protected routes - must be logged in
-router.post('/', requireAuth,validateCreateProject, projectController.createProject);
-router.get('/my', requireAuth, projectController.getMyProjects);
-router.delete('/:id', requireAuth, projectController.deleteProject);
-router.patch('/:id', requireAuth,validateUpdateProject, projectController.updateProject);
-router.post('/:id/invite', requireAuth, projectController.inviteToProject);
-router.patch('/:id/accept', requireAuth, projectController.acceptInvite);
-router.post('/:id/images', requireAuth, uploadImage, projectController.uploadMoodboardImage);
-router.get('/:id/images', requireAuth, projectController.getProjectImages);
+// Basic project CRUD
+const projectCtrl = require('../controllers/project/project.controller');
+router.post('/', requireAuth, projectCtrl.createProject);
+router.get('/my', requireAuth, projectCtrl.getMyProjects);
+router.get('/:id', requireAuth, projectCtrl.getProject);
+router.patch('/:id', requireAuth, projectCtrl.updateProject);
+router.delete('/:id', requireAuth, projectCtrl.deleteProject);
+
+// Collaboration
+const collabCtrl = require('../controllers/project/collaboration.controller');
+router.post('/:id/invite', requireAuth, collabCtrl.inviteToProject);
+router.patch('/:id/accept', requireAuth, collabCtrl.acceptInvite);
+
+// Moodboard
+const moodboardCtrl = require('../controllers/project/moodboard.controller');
+router.post('/:id/images', requireAuth, uploadImage, moodboardCtrl.uploadMoodboardImage);
 
 module.exports = router;

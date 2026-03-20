@@ -157,6 +157,50 @@ async function updateProject(projectId, userId, updates) {
 }
 
 /**
+ * Get a single project by ID - only if user owns it or is accepted member
+ * @param {string} projectId
+ * @param {string} userId
+ */
+async function getProjectById(projectId, userId) {
+  try {
+    const { data: project, error: fetchError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (fetchError || !project) {
+      throw new Error('Project not found');
+    }
+
+    const isOwner = project.user_id === userId;
+
+    let isAcceptedMember = false;
+    if (!isOwner) {
+      const { data: member, error: memberErr } = await supabase
+        .from('project_members')
+        .select('accepted_at')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .single();
+
+      if (memberErr) throw memberErr;
+      isAcceptedMember = !!member?.accepted_at;
+    }
+
+    if (!isOwner && !isAcceptedMember) {
+      throw new Error('Not authorized to view this project');
+    }
+
+    return { project };
+  } catch (error) {
+    console.error('Get project by ID error:', error);
+    throw error;
+  }
+}
+
+
+/**
  * Invite a user to a project by email — only owner can invite
  * @param {string} projectId
  * @param {string} ownerId
@@ -291,9 +335,6 @@ console.log({ adminCheck: adminCheck.data, userCheck: userCheck.data });
     console.error('Accept invite error:', error);
     throw error;
   }
-
-
-  
 }
 
 
@@ -304,6 +345,7 @@ module.exports = {
   getUserProjects,
   deleteProject,
   updateProject,
+  getProjectById,
   inviteToProject,
   acceptInvite
 };

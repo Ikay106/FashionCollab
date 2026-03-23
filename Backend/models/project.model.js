@@ -38,42 +38,61 @@ async function createProject(userId, { title, description, location, shoot_date,
  */
 async function getUserProjects(userId) {
   try {
-    // Owned projects
+    console.log(`DEBUG: getUserProjects called for userId: ${userId}`);
+
+    // 1. Owned projects
     const { data: owned, error: ownedErr } = await supabase
       .from('projects')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (ownedErr) throw ownedErr;
+    console.log('DEBUG: Owned projects count:', owned?.length || 0, 'Error:', ownedErr);
 
-    // Accepted memberships (project_ids where user is member)
+    // 2. Accepted joined projects
     const { data: memberships, error: memErr } = await supabase
       .from('project_members')
       .select('project_id')
       .eq('user_id', userId)
-      .not('accepted_at', 'is', null);  // only accepted invites
+      .not('accepted_at', 'is', null);
 
-    if (memErr) throw memErr;
+    console.log('DEBUG: Accepted memberships count:', memberships?.length || 0, 'Error:', memErr);
 
     const joinedIds = memberships?.map(m => m.project_id) || [];
+    console.log('DEBUG: Joined project IDs:', joinedIds);
 
-    // Joined projects
     let joined = [];
     if (joinedIds.length > 0) {
-      const { data, error: joinedErr } = await supabase
+      const { data, error: joinedErr } = await supabaseAdmin
         .from('projects')
         .select('*')
         .in('id', joinedIds)
         .order('created_at', { ascending: false });
 
-      if (joinedErr) throw joinedErr;
+      console.log('DEBUG: Joined projects count:', data?.length || 0, 'Error:', joinedErr);
       joined = data || [];
     }
 
-    // Combine & remove duplicates
-    const all = [...(owned || []), ...joined];
-    const unique = Array.from(new Map(all.map(p => [p.id, p])).values());
+    // TAG PROJECTS
+    const ownedTagged = (owned || []).map(p => ({
+      ...p,
+      memberStatus: 'Owner'
+    }));
+
+    const joinedTagged = (joined || []).map(p => ({
+      ...p,
+      memberStatus: 'Invitee'
+    }));
+
+    // COMBINE TAGGED PROJECTS
+    const all = [...ownedTagged, ...joinedTagged];
+
+    // REMOVE DUPLICATES
+    const unique = Array.from(
+      new Map(all.map(p => [p.id, p])).values()
+    );
+
+    console.log('DEBUG: Final projects count:', unique.length);
 
     return { projects: unique };
   } catch (error) {
@@ -100,7 +119,7 @@ async function deleteProject(projectId, userId) {
 
     if (fetchError) throw fetchError;
     if (!project) {
-      throw new Error('Project not found or you do not have permission to delete it');
+      throw new Error('You are not the owner of this project');
     }
 
     // Perform delete
@@ -163,7 +182,7 @@ async function updateProject(projectId, userId, updates) {
  */
 async function getProjectById(projectId, userId) {
   try {
-    const { data: project, error: fetchError } = await supabase
+    const { data: project, error: fetchError } = await supabaseAdmin
       .from('projects')
       .select('*')
       .eq('id', projectId)
@@ -192,7 +211,12 @@ async function getProjectById(projectId, userId) {
       throw new Error('Not authorized to view this project');
     }
 
-    return { project };
+    return {
+      project: {
+        ...project,
+        memberStatus: isOwner ? 'Owner' : 'Invitee'
+      }
+    };
   } catch (error) {
     console.error('Get project by ID error:', error);
     throw error;

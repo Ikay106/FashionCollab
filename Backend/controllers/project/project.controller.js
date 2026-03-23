@@ -53,7 +53,7 @@ exports.updateProject = async (req, res) => {
     res.json({ message: 'Project updated', project });
   } catch (error) {
     console.error('Update project error:', error);
-    res.status(500).json({ error: 'Failed to update project' });
+    res.status(500).json({ error: error.message || 'Failed to update project' });
   }
 };
 

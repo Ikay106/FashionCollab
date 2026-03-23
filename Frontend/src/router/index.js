@@ -6,7 +6,8 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', component: () => import('@/views/DashboardView.vue') },
   { path: '/projects/create', name: 'CreateProject', component: () => import('@/views/CreateProjectView.vue') },
   { path: '/projects/:id', name: 'ProjectDetail', component: () => import('@/views/ProjectDetailView.vue') },
-  { path: '/projects/:id/edit', name: 'EditProject', component: () => import('@/views/EditProjectView.vue') }
+  { path: '/projects/:id/edit', name: 'EditProject', component: () => import('@/views/EditProjectView.vue') },
+  { path: '/invites', name: 'InvitesList', component: () => import('@/views/InvitesListView.vue') },
 ]
 
 const router = createRouter({

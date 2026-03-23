@@ -9,6 +9,12 @@
   >
     <span>+</span> Create New Project
   </button>
+  <router-link
+    to="/invites"
+    class="px-6 py-3 bg-purple-600 text-white rounded-xl"
+    >
+    View Invites
+    </router-link>
       </div>
 
       <div v-if="loading" class="text-center py-12">

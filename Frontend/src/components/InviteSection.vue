@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   projectId: [String, Number],
-  canInvite: Boolean
+  isOwner: Boolean
 })
 
 const emit = defineEmits(['invited'])
@@ -13,16 +13,20 @@ const authStore = useAuthStore()
 
 const inviteEmail = ref('')
 const loading = ref(false)
-const inviteError = ref('')
+const success = ref(false)
+const error = ref('')
 
 const sendInvite = async () => {
   loading.value = true
-  inviteError.value = ''
+  success.value = false
+  error.value = ''
 
   try {
     await axios.post(
       `http://localhost:4000/api/projects/${props.projectId}/invite`,
-      { email: inviteEmail.value },
+      {
+        email: inviteEmail.value.trim()
+      },
       {
         headers: {
           Authorization: `Bearer ${authStore.token}`
@@ -30,10 +34,11 @@ const sendInvite = async () => {
       }
     )
 
-    emit('invited')
+    success.value = true
     inviteEmail.value = ''
+    emit('invited')
   } catch (err) {
-    inviteError.value = err.response?.data?.error || 'Failed to invite'
+    error.value = err.response?.data?.error || 'Failed to send invite'
   } finally {
     loading.value = false
   }
@@ -41,7 +46,7 @@ const sendInvite = async () => {
 </script>
 
 <template>
-  <div v-if="canInvite" class="bg-white p-8 rounded-2xl shadow-lg mb-10">
+  <div v-if="isOwner" class="bg-white p-8 rounded-2xl shadow-lg mb-10">
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Invite Collaborator</h2>
     <form @submit.prevent="sendInvite" class="flex flex-col sm:flex-row gap-4">
       <input

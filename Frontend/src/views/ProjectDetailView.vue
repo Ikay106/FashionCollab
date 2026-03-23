@@ -20,10 +20,11 @@
         <ProjectInfo :project="project" />
 
         <InviteSection
-            v-if="project.memberStatus === 'Owner'"
-            :project-id="projectId"
-            @invited="fetchProject"
+        :project-id="projectId"
+        :is-owner="isOwner"
+        @invited="fetchProject"
         />
+        
         <MoodboardSection
           :images="images"
           @upload="openUpload"

@@ -1,59 +1,61 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">FashionCollab</h1>
+  <div class="min-h-screen bg-gradient-to-br from-teal-50 via-pink-50 to-white flex items-center justify-center p-4">
+    <div class="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md border border-teal-100">
+      <h1 class="text-4xl font-extrabold text-center mb-8 bg-gradient-to-r from-teal-600 to-pink-600 bg-clip-text text-transparent">
+        FashionCollab
+      </h1>
 
-      <div class="flex mb-6 border-b">
+      <div class="flex mb-8 border-b border-gray-200">
         <button
           @click="isLogin = true"
           :class="{
-            'border-b-2 border-blue-600 text-blue-600 font-semibold': isLogin,
-            'text-gray-500 hover:text-gray-700': !isLogin
+            'border-b-4 border-teal-600 text-teal-700 font-semibold': isLogin,
+            'text-gray-500 hover:text-teal-600': !isLogin
           }"
-          class="flex-1 py-3 text-center transition"
+          class="flex-1 py-4 text-lg transition-colors"
         >
-          Login
+          Log In
         </button>
         <button
           @click="isLogin = false"
           :class="{
-            'border-b-2 border-blue-600 text-blue-600 font-semibold': !isLogin,
-            'text-gray-500 hover:text-gray-700': isLogin
+            'border-b-4 border-pink-600 text-pink-700 font-semibold': !isLogin,
+            'text-gray-500 hover:text-pink-600': isLogin
           }"
-          class="flex-1 py-3 text-center transition"
+          class="flex-1 py-4 text-lg transition-colors"
         >
           Sign Up
         </button>
       </div>
 
       <form @submit.prevent="handleSubmit">
-        <div class="mb-5">
-          <label class="block text-gray-700 mb-2">Email</label>
+        <div class="mb-6">
+          <label class="block text-gray-700 font-medium mb-2">Email</label>
           <input
             v-model="email"
             type="email"
-            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
             placeholder="you@example.com"
             required
           />
         </div>
 
-        <div class="mb-6">
-          <label class="block text-gray-700 mb-2">Password</label>
+        <div class="mb-8">
+          <label class="block text-gray-700 font-medium mb-2">Password</label>
           <input
             v-model="password"
             type="password"
-            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
             placeholder="••••••••"
             required
           />
         </div>
 
-        <div v-if="!isLogin" class="mb-6">
-          <label class="block text-gray-700 mb-2">Role</label>
+        <div v-if="!isLogin" class="mb-8">
+          <label class="block text-gray-700 font-medium mb-2">Role</label>
           <select
             v-model="role"
-            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition bg-white"
             required
           >
             <option value="">Select your role</option>
@@ -70,20 +72,20 @@
 
         <button
           type="submit"
-          class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           :disabled="loading"
+          class="w-full py-4 bg-gradient-to-r from-teal-600 to-pink-600 text-white rounded-xl font-semibold hover:from-teal-700 hover:to-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ loading ? 'Loading...' : (isLogin ? 'Log In' : 'Sign Up') }}
         </button>
       </form>
 
-      <p v-if="error" class="text-center mt-4 text-red-600">
+      <p v-if="error" class="text-center mt-6 text-red-600 font-medium">
         {{ error }}
       </p>
 
-      <p class="text-center mt-6 text-gray-600">
+      <p class="text-center mt-8 text-gray-600">
         {{ isLogin ? "Don't have an account?" : "Already have an account?" }}
-        <button @click="isLogin = !isLogin" class="text-blue-600 underline ml-1">
+        <button @click="isLogin = !isLogin" class="text-teal-600 font-medium hover:underline ml-1">
           {{ isLogin ? 'Sign Up' : 'Log In' }}
         </button>
       </p>
@@ -126,8 +128,10 @@ const handleSubmit = async () => {
       })
     }
 
-    const { access_token } = response.data
+    console.log('login response:', response.data)
+    const { access_token,user } = response.data
     authStore.setToken(access_token)
+    authStore.setUser(user)
     router.push('/dashboard')
   } catch (err) {
     error.value = err.response?.data?.error || 'Something went wrong. Please try again.'

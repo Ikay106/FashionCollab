@@ -1,10 +1,8 @@
-<!-- src/App.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
-    <router-view /> <!-- This shows our pages -->
+    <router-view class="pt-4" /> <!-- All pages appear here -->
   </div>
 </template>
 
 <script setup>
-// Nothing here yet
 </script>

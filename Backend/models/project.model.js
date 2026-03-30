@@ -109,21 +109,59 @@ async function getUserProjects(userId) {
  */
 async function deleteProject(projectId, userId) {
   try {
-    // First check ownership
-    const { data: project, error: fetchError } = await supabase
+    // 1. Check ownership
+    const { data: project, error: fetchError } = await supabaseAdmin
       .from('projects')
-      .select('id')
+      .select('id, user_id')
       .eq('id', projectId)
       .eq('user_id', userId)
       .single();
 
     if (fetchError) throw fetchError;
+
     if (!project) {
       throw new Error('You are not the owner of this project');
     }
 
-    // Perform delete
-    const { error: deleteError } = await supabase
+    // 2. Get all image records for this project
+    const { data: images, error: imagesError } = await supabaseAdmin
+      .from('project-images')
+      .select('storage_path')
+      .eq('project_id', projectId);
+
+    if (imagesError) throw imagesError;
+
+    // 3. Delete files from Supabase Storage
+    const storagePaths = (images || [])
+      .map((img) => img.storage_path)
+      .filter(Boolean);
+
+    if (storagePaths.length > 0) {
+      const { error: storageDeleteError } = await supabaseAdmin.storage
+        .from('project-moodboards')
+        .remove(storagePaths);
+
+      if (storageDeleteError) throw storageDeleteError;
+    }
+
+    // 4. Delete image metadata rows
+    const { error: imageDeleteError } = await supabaseAdmin
+      .from('project-images')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (imageDeleteError) throw imageDeleteError;
+
+    // 5. Delete project members / invites
+    const { error: memberDeleteError } = await supabaseAdmin
+      .from('project_members')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (memberDeleteError) throw memberDeleteError;
+
+    // 6. Delete the project itself
+    const { error: deleteError } = await supabaseAdmin
       .from('projects')
       .delete()
       .eq('id', projectId);

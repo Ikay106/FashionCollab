@@ -1,6 +1,6 @@
 // backend/controllers/project/collaboration.controller.js
 const projectModel = require('../../models/project.model');
-const { supabase } = require('../../lib/supabase');
+const { supabase,supabaseAdmin } = require('../../lib/supabase');
 
 /* Invite */
 exports.inviteToProject = async (req, res) => {

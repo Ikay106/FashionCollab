@@ -1,6 +1,6 @@
 // backend/controllers/project/project.controller.js
 const projectModel = require('../../models/project.model');
-const { supabase } = require('../../lib/supabase');
+const { supabase, supabaseAdmin } = require('../../lib/supabase');
 
 /* Create */
 exports.createProject = async (req, res) => {

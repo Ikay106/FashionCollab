@@ -6,6 +6,8 @@ const { uploadImage } = require('../middleware/upload.middleware');
 const projectCtrl = require('../controllers/project/project.controller');
 const collabCtrl = require('../controllers/project/collaboration.controller');
 const moodboardCtrl = require('../controllers/project/moodboard.controller');
+const commentCtrl = require('../controllers/project/comment.controller')
+const noteCtrl = require('../controllers/project/note.controller')
 
 // Basic project CRUD
 router.post('/', requireAuth, projectCtrl.createProject);
@@ -17,10 +19,18 @@ router.post('/:id/images', requireAuth, uploadImage, moodboardCtrl.uploadMoodboa
 router.get('/:id/images', requireAuth, moodboardCtrl.getProjectImages);
 router.delete('/:id/images/:imageId', requireAuth, moodboardCtrl.deleteProjectImage);
 
+router.post('/:id/images/:imageId/comments', requireAuth, commentCtrl.addComment)
+router.get('/:id/images/:imageId/comments', requireAuth, commentCtrl.getComments)
+
 // Collaboration
 router.post('/:id/invite', requireAuth, collabCtrl.inviteToProject);
 router.patch('/:id/accept', requireAuth, collabCtrl.acceptInvite);
 router.delete('/:id/decline', requireAuth, collabCtrl.declineInvite);
+
+//notes
+router.get('/:id/notes', requireAuth, noteCtrl.getProjectNotes)
+router.post('/:id/notes', requireAuth, noteCtrl.addProjectNote)
+router.delete('/:id/notes/:noteId', requireAuth, noteCtrl.deleteProjectNote)
 
 // Generic project routes LAST
 router.get('/:id', requireAuth, projectCtrl.getProject);

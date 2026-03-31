@@ -98,3 +98,89 @@ exports.getProject = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch project' });
   }
 };
+
+exports.getProjectMembers = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    // 1. Check project exists
+    const { data: project, error: projectErr } = await supabaseAdmin
+      .from('projects')
+      .select('id, user_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectErr) throw projectErr;
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    // 2. Check access
+    const isOwner = project.user_id === userId;
+
+    let isMember = false;
+    if (!isOwner) {
+      const { data: member } = await supabase
+        .from('project_members')
+        .select('accepted_at')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      isMember = !!member?.accepted_at;
+    }
+
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ error: 'Not allowed' });
+    }
+
+    // 3. Get accepted invited members
+    const { data: members, error: membersErr } = await supabaseAdmin
+      .from('project_members')
+      .select('user_id, role, accepted_at')
+      .eq('project_id', projectId)
+      .not('accepted_at', 'is', null);
+
+    if (membersErr) throw membersErr;
+
+    // 4. Get profiles for owner + members
+    const invitedUserIds = (members || []).map(m => m.user_id);
+    const userIds = [project.user_id, ...invitedUserIds];
+
+    const uniqueUserIds = [...new Set(userIds)];
+
+    const { data: profiles, error: profilesErr } = await supabaseAdmin
+      .from('profiles')
+      .select('*')
+      .in('id', uniqueUserIds);
+
+    if (profilesErr) throw profilesErr;
+
+    // 5. Build lookup map safely
+    const profileMap = Object.fromEntries(
+      (profiles || []).map(p => [p.id, p])
+    );
+
+    // 6. Add owner manually
+    const ownerMember = {
+      id: project.user_id,
+      ...(profileMap[project.user_id] || {}),
+      project_role: 'Owner'
+    };
+
+    // 7. Add accepted invitees
+    const invitedMembers = (members || []).map(m => ({
+      id: m.user_id,
+      ...(profileMap[m.user_id] || {}),
+      project_role: m.role || 'Collaborator'
+    }));
+
+    // 8. Return combined list
+    res.json({
+      members: [ownerMember, ...invitedMembers]
+    });
+
+  } catch (err) {
+    console.error('Get members error:', err);
+    res.status(500).json({ error: 'Failed to fetch members' });
+  }
+};

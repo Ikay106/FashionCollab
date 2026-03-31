@@ -268,7 +268,7 @@ async function getProjectById(projectId, userId) {
  * @param {string} ownerId
  * @param {string} inviteEmail
  */
-async function inviteToProject(projectId, ownerId, inviteEmail) {
+async function inviteToProject(projectId, ownerId, inviteEmail,role) {
   try {
     // Normalize email
     const email = inviteEmail.trim().toLowerCase();
@@ -322,6 +322,7 @@ async function inviteToProject(projectId, ownerId, inviteEmail) {
         project_id: projectId,
         user_id: invitedUser.id,
         invited_at: new Date().toISOString(),
+        role: role || 'Collaborator',
       });
 
     if (insertErr) throw insertErr;

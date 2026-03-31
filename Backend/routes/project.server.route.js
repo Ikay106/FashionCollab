@@ -26,4 +26,5 @@ router.delete('/:id/decline', requireAuth, collabCtrl.declineInvite);
 router.get('/:id', requireAuth, projectCtrl.getProject);
 router.patch('/:id', requireAuth, projectCtrl.updateProject);
 router.delete('/:id', requireAuth, projectCtrl.deleteProject);
+router.get('/:id/members', requireAuth, projectCtrl.getProjectMembers);
 module.exports = router;

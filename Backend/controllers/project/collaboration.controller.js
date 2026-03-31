@@ -7,11 +7,11 @@ exports.inviteToProject = async (req, res) => {
   try {
     const projectId = req.params.id;
     const ownerId = req.user.id;
-    const { email } = req.body;
+    const { email,role } = req.body;
 
     if (!email) return res.status(400).json({ error: 'Email required' });
 
-    const result = await projectModel.inviteToProject(projectId, ownerId, email);
+    const result = await projectModel.inviteToProject(projectId, ownerId, email,role);
     res.status(201).json(result);
   } catch (error) {
     if (error.message.includes('permission')) return res.status(403).json({ error: error.message });

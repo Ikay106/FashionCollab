@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   projectId: [String, Number],
@@ -10,11 +11,14 @@ const props = defineProps({
 
 const emit = defineEmits(['invited'])
 const authStore = useAuthStore()
+const router = useRouter()
 
 const inviteEmail = ref('')
+const inviteRole = ref('Model')
 const loading = ref(false)
 const success = ref(false)
 const error = ref('')
+const inviteError = ref('')
 
 const sendInvite = async () => {
   loading.value = true
@@ -25,7 +29,8 @@ const sendInvite = async () => {
     await axios.post(
       `http://localhost:4000/api/projects/${props.projectId}/invite`,
       {
-        email: inviteEmail.value.trim()
+        email: inviteEmail.value.trim(),
+        role: inviteRole.value
       },
       {
         headers: {
@@ -36,7 +41,10 @@ const sendInvite = async () => {
 
     success.value = true
     inviteEmail.value = ''
+    inviteRole.value = 'Model'
     emit('invited')
+    router.push(`/projects/${props.invite.project_id}`)
+
   } catch (err) {
     error.value = err.response?.data?.error || 'Failed to send invite'
   } finally {
@@ -56,6 +64,15 @@ const sendInvite = async () => {
         placeholder="Enter email"
         required
       />
+
+      <select v-model="inviteRole">
+      <option value="Model">Model</option>
+      <option value="Stylist">Stylist</option>
+      <option value="Photographer">Photographer</option>
+      <option value="Makeup Artist">Makeup Artist</option>
+      <option value="Designer">Designer</option>
+      <option value="Creative Director">Creative Director</option>
+    </select>
       <button
         type="submit"
         :disabled="loading"

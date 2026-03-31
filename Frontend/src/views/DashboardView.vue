@@ -1,4 +1,7 @@
 <template>
+  <button @click="$router.push('/profile/me')">
+  My Profile
+</button>
   <div class="min-h-screen bg-gray-50 p-6">
     <div class="max-w-6xl mx-auto">
       <div class="flex justify-between items-center mb-8">
@@ -9,6 +12,7 @@
   >
     <span>+</span> Create New Project
   </button>
+
   <router-link
     to="/invites"
     class="px-6 py-3 bg-purple-600 text-white rounded-xl"

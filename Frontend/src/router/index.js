@@ -8,6 +8,7 @@ const routes = [
   { path: '/projects/:id', name: 'ProjectDetail', component: () => import('@/views/ProjectDetailView.vue') },
   { path: '/projects/:id/edit', name: 'EditProject', component: () => import('@/views/EditProjectView.vue') },
   { path: '/invites', name: 'InvitesList', component: () => import('@/views/InvitesListView.vue') },
+  { path: '/profile/:id?', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

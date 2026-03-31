@@ -109,6 +109,34 @@ const role = ref('')
 const loading = ref(false)
 const error = ref('')
 
+const checkProfileAndRedirect = async () => {
+  try {
+    const res = await axios.get('http://localhost:4000/api/profiles/me', {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`
+      }
+    })
+
+    const profile = res.data || {}
+
+    const isIncomplete =
+      !profile.full_name ||
+      !profile.username ||
+      !profile.role
+
+    if (isIncomplete) {
+      router.push('/profile/me?setup=1')
+    } else {
+      router.push('/dashboard')
+    }
+  } catch (err) {
+    console.error('Profile check error:', err)
+
+    // no profile at all → go create one
+    router.push('/profile/me?setup=1')
+  }
+}
+
 const handleSubmit = async () => {
   loading.value = true
   error.value = ''
@@ -132,7 +160,7 @@ const handleSubmit = async () => {
     const { access_token,user } = response.data
     authStore.setToken(access_token)
     authStore.setUser(user)
-    router.push('/dashboard')
+   await checkProfileAndRedirect()
   } catch (err) {
     error.value = err.response?.data?.error || 'Something went wrong. Please try again.'
   } finally {

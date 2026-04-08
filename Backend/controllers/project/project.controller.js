@@ -184,3 +184,20 @@ exports.getProjectMembers = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch members' });
   }
 };
+
+
+exports.removeMember = async (req, res) => {
+  try {
+    const projectId = req.params.id
+    const ownerId = req.user.id
+    const { memberId } = req.params
+
+    const result = await projectModel.removeMember(projectId, ownerId, memberId)
+    res.json(result)
+  } catch (error) {
+    if (error.message.includes('permission')) return res.status(403).json({ error: error.message })
+    if (error.message.includes('yourself')) return res.status(400).json({ error: error.message })
+    console.error('Remove member error:', error)
+    res.status(500).json({ error: 'Failed to remove member' })
+  }
+}

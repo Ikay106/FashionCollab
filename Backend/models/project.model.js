@@ -400,6 +400,46 @@ console.log({ adminCheck: adminCheck.data, userCheck: userCheck.data });
   }
 }
 
+/**
+ * Remove a member from a project - only owner can do this
+ * @param {string} projectId
+ * @param {string} ownerId
+ * @param {string} memberUserId - the user to remove
+ */
+async function removeMember(projectId, ownerId, memberUserId) {
+  try {
+    // 1. Verify requester is the owner
+    const { data: project, error: projErr } = await supabaseAdmin
+      .from('projects')
+      .select('id, user_id')
+      .eq('id', projectId)
+      .eq('user_id', ownerId)
+      .single()
+
+    if (projErr || !project) {
+      throw new Error('You do not have permission to remove members from this project')
+    }
+
+    // 2. Can't remove yourself (owner)
+    if (memberUserId === ownerId) {
+      throw new Error('You cannot remove yourself as the owner')
+    }
+
+    // 3. Delete the membership row
+    const { error: deleteErr } = await supabaseAdmin
+      .from('project_members')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('user_id', memberUserId)
+
+    if (deleteErr) throw deleteErr
+
+    return { message: 'Member removed successfully' }
+  } catch (error) {
+    console.error('Remove member error:', error)
+    throw error
+  }
+}
 
 
 
@@ -410,5 +450,6 @@ module.exports = {
   updateProject,
   getProjectById,
   inviteToProject,
-  acceptInvite
+  acceptInvite,
+  removeMember
 };

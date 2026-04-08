@@ -90,3 +90,51 @@ exports.getComments = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch comments' })
   }
 }
+
+exports.deleteComment = async (req, res) => {
+  try {
+    const { id: projectId, imageId, commentId } = req.params
+    const userId = req.user.id
+
+    // 1. Fetch the comment
+    const { data: comment, error: commentErr } = await supabaseAdmin
+      .from('image_comments')
+      .select('*')
+      .eq('id', commentId)
+      .eq('image_id', imageId)
+      .single()
+
+    if (commentErr) throw commentErr
+    if (!comment) return res.status(404).json({ error: 'Comment not found' })
+
+    // 2. Check if user is the comment author
+    const isAuthor = comment.user_id === userId
+
+    // 3. Check if user is the project owner
+    const { data: project, error: projectErr } = await supabaseAdmin
+      .from('projects')
+      .select('user_id')
+      .eq('id', projectId)
+      .single()
+
+    if (projectErr) throw projectErr
+    const isOwner = project?.user_id === userId
+
+    if (!isAuthor && !isOwner) {
+      return res.status(403).json({ error: 'Not allowed to delete this comment' })
+    }
+
+    // 4. Delete it
+    const { error: deleteErr } = await supabaseAdmin
+      .from('image_comments')
+      .delete()
+      .eq('id', commentId)
+
+    if (deleteErr) throw deleteErr
+
+    res.json({ message: 'Comment deleted' })
+  } catch (err) {
+    console.error('Delete comment error:', err)
+    res.status(500).json({ error: 'Failed to delete comment' })
+  }
+}

@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../lib/supabase');
+const path = require('path')
 
 async function getMyProfile(userId) {
   const { data, error } = await supabaseAdmin
@@ -46,8 +47,42 @@ async function upsertProfile(userId, profileData) {
   return data;
 }
 
+async function uploadAvatar(userId, file) {
+  const fileExt = path.extname(file.originalname)
+  const fileName = `${userId}${fileExt}`
+ 
+  // Upsert so re-uploading replaces the old one
+  const { error: uploadErr } = await supabaseAdmin.storage
+    .from('avatars')
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype,
+      upsert: true
+    })
+ 
+  if (uploadErr) throw uploadErr
+ 
+  const { data: urlData } = supabaseAdmin.storage
+    .from('avatars')
+    .getPublicUrl(fileName)
+ 
+  // Add cache-busting so browser picks up the new image immediately
+  const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`
+ 
+  // Save URL to profile
+  const { data, error: dbErr } = await supabaseAdmin
+    .from('profiles')
+    .upsert({ id: userId, avatar_url: avatarUrl }, { onConflict: 'id' })
+    .select()
+    .single()
+ 
+  if (dbErr) throw dbErr
+ 
+  return { avatar_url: avatarUrl, profile: data }
+}
+
 module.exports = {
   getMyProfile,
   getProfileById,
   upsertProfile,
+  uploadAvatar
 };

@@ -73,3 +73,23 @@ exports.upsertMyProfile = async (req, res) => {
     return res.status(500).json({ error: error.message || 'Failed to save profile' });
   }
 };
+
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.user.id
+ 
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' })
+ 
+    const profileModel = require('../models/profile.model')
+    const result = await profileModel.uploadAvatar(userId, req.file)
+ 
+    return res.status(200).json({
+      message: 'Avatar uploaded successfully',
+      avatar_url: result.avatar_url,
+      profile: result.profile
+    })
+  } catch (error) {
+    console.error('Upload avatar error:', error)
+    return res.status(500).json({ error: error.message || 'Failed to upload avatar' })
+  }
+}

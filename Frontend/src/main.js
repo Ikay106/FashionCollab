@@ -21,7 +21,7 @@ axios.interceptors.request.use(config => {
   return config
 })
 
-// Optional: handle 401 (unauthorized) → auto logout
+// handle 401 (unauthorized) 
 axios.interceptors.response.use(
   response => response,
   error => {

@@ -1,67 +1,59 @@
 <template>
-  <div class="flex justify-between items-center">
-    <button
-  @click="router.push('/dashboard')"
-  class="flex items-center text-teal-600 hover:text-teal-800 font-medium mb-2"
->
-  ← My Projects
-</button>
-    <div class="flex items-center gap-3">
-      <h1 class="text-3xl font-bold text-gray-800">
-        {{ project.title }}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-4xl font-bold text-gray-900">
+        {{ isOwnProfile ? 'My Profile' : `${profile.full_name || 'User'}'s Profile` }}
       </h1>
-
-      <span
-        :class="[
-          'px-3 py-1 text-xs rounded-full font-medium',
-          memberStatus === 'Owner'
-            ? 'bg-green-100 text-green-700'
-            : 'bg-blue-100 text-blue-700'
-        ]"
-      >
-        {{ project.memberStatus }}
-      </span>
+      <p class="mt-2 text-gray-600 text-lg">
+        {{ isOwnProfile
+          ? 'Manage how you appear to the fashion community'
+          : 'Member profile' }}
+      </p>
     </div>
 
-    <div class="flex gap-3">
-      <button @click="$emit('edit')" class="bg-gray-200 px-4 py-2 rounded-lg">
-        Edit
+    <div class="flex items-center gap-3">
+      <button
+        v-if="isOwnProfile"
+        @click="$emit('edit')"
+        class="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-2xl transition-all active:scale-95"
+      >
+        Edit Profile
       </button>
 
       <button
-       v-if="project.memberStatus === 'Owner'"
-        @click="$emit('delete')"
-        class="bg-red-600 text-white px-4 py-2 rounded-lg"
+        @click="$emit('back')"
+        class="flex items-center gap-2 text-gray-500 hover:text-gray-700 font-medium"
       >
-        Delete
+        ← Back
+      </button>
+
+      <button
+        v-if="isOwnProfile"
+        @click="handleLogout"
+        class="px-5 py-3 rounded-2xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition"
+      >
+        Log Out
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const props = defineProps({
-  project: {
-    type: Object,
-    required: true
-  },
-  memberStatus:String
+defineProps({
+  profile: Object,
+  isOwnProfile: Boolean
 })
+
+defineEmits(['edit', 'back'])
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-const emit = defineEmits(['edit', 'delete'])
-
-const statusBadgeClass = computed(() => {
-  const s = props.project.status?.toLowerCase() || ''
-  if (s === 'draft') return 'bg-gray-100 text-gray-700'
-  if (s === 'planned') return 'bg-blue-100 text-blue-700'
-  if (s === 'in_progress') return 'bg-orange-100 text-orange-700'
-  if (s === 'completed') return 'bg-green-100 text-green-700'
-  if (s === 'cancelled') return 'bg-red-100 text-red-700'
-  return 'bg-gray-100 text-gray-700'
-})
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
+}
 </script>

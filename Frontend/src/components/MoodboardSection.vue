@@ -1,84 +1,117 @@
 <template>
-  <div class="bg-white rounded-2xl shadow-lg p-8">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">Moodboard</h2>
-
+  <div>
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">Moodboard</h2>
+        <p class="text-sm text-gray-400 mt-0.5">{{ images.length }} image{{ images.length === 1 ? '' : 's' }}</p>
+      </div>
       <button
-        @click="openUpload"
-        class="px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition flex items-center gap-2"
+        @click="triggerUpload"
+        class="px-5 py-2.5 rounded-full bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition"
       >
-        <span>+</span> Upload Image
+        + Upload
       </button>
     </div>
 
-    <div v-if="images.length === 0" class="text-center py-12 text-gray-600">
-      No moodboard images yet — upload some to inspire the team!
+    <!-- Empty state -->
+    <div v-if="images.length === 0" class="text-center py-16 text-gray-400 text-sm border border-dashed border-gray-200 rounded-2xl">
+      No images yet — upload some to inspire the team!
     </div>
 
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Image grid -->
+    <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-4">
       <div
-        v-for="image in images"
+        v-for="(image, index) in images"
         :key="image.id"
-        class="bg-gray-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition border border-gray-100"
+        class="group relative bg-gray-50 rounded-2xl overflow-hidden aspect-square cursor-pointer"
+        @click="openViewer(index)"
       >
-        <div class="relative group">
-          <img
-            :src="image.image_url"
-            :alt="image.file_name || 'Moodboard image'"
-            class="w-full h-64 object-cover"
-          />
-
-          <div
-            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+        <img
+          :src="image.image_url"
+          :alt="image.file_name || 'Moodboard image'"
+          class="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+        />
+        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex flex-col items-end justify-start p-3">
+          <button
+            @click.stop="emit('delete', image.id)"
+            class="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition"
           >
-            <button
-              @click="removeImage(image.id)"
-              class="text-white bg-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-700"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div class="p-4">
-          <p class="font-semibold text-gray-800 mb-1">
-            {{ image.file_name || 'Untitled image' }}
-          </p>
-
-          <p class="text-sm text-gray-600 mb-2">
-            {{ image.description || 'No description provided.' }}
-          </p>
-
-          <div class="flex justify-between items-center text-xs text-gray-500">
-            <span>Uploaded by: {{ image.uploader_role || 'Unknown' }}</span>
-            <span>{{ formatDate(image.uploaded_at) }}</span>
+            Delete
+          </button>
+          <div class="mt-auto w-full">
+            <p class="text-white text-xs font-medium truncate">
+              {{ image.description || image.file_name || '' }}
+            </p>
+            <p class="text-white/60 text-xs">{{ image.uploader_role }}</p>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Image viewer modal -->
+    <ImageViewerModal
+      :image="viewerImage"
+      :has-prev="viewerIndex > 0"
+      :has-next="viewerIndex < images.length - 1"
+      @close="viewerImage = null"
+      @prev="viewerIndex--; viewerImage = images[viewerIndex]"
+      @next="viewerIndex++; viewerImage = images[viewerIndex]"
+    />
+
+    <!-- Image comments -->
+    <div v-if="images.length > 0" class="mt-8 space-y-4">
+      <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Image Comments</h3>
+      <div
+        v-for="image in images"
+        :key="'comments-' + image.id"
+        class="border border-gray-100 rounded-2xl p-4 bg-gray-50"
+      >
+        <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+          {{ image.file_name || 'Untitled image' }}
+        </p>
+        <MoodboardComments :image="image" :project-id="projectId" />
+      </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/*"
+      class="hidden"
+      @change="handleFileChange"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import ImageViewerModal from '@/components/ImageViewerModal.vue'
+import MoodboardComments from '@/components/MoodboardComments.vue'
+
 const props = defineProps({
-  images: {
-    type: Array,
-    default: () => []
-  }
+  projectId: { type: [String, Number], required: true },
+  images: { type: Array, default: () => [] }
 })
 
-const emit = defineEmits(['upload', 'delete'])
+const emit = defineEmits(['delete', 'upload'])
 
-const openUpload = () => {
-  emit('upload')
+const fileInput = ref(null)
+const viewerImage = ref(null)
+const viewerIndex = ref(0)
+
+const triggerUpload = () => fileInput.value?.click()
+
+const openViewer = (index) => {
+  viewerIndex.value = index
+  viewerImage.value = props.images[index]
 }
 
-const removeImage = (imageId) => {
-  emit('delete', imageId)
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString()
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  const description = prompt('Add a short description for this image:') || ''
+  emit('upload', { file, description })
+  event.target.value = ''
 }
 </script>

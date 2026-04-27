@@ -1,5 +1,6 @@
 // backend/controllers/project/collaboration.controller.js
 const collaborationModel = require('../../models/project/collaboration.model')
+const { logActivity } = require('../../models/activity/activity.model')
 const { sendInviteEmail, sendAcceptedEmail, sendDeclinedEmail } = require('../../lib/email')
 
 exports.inviteToProject = async (req, res) => {
@@ -11,13 +12,15 @@ exports.inviteToProject = async (req, res) => {
       req.params.id, req.user.id, email, role
     )
 
-    // Send notification — non-blocking
+    await logActivity(req.params.id, req.user.id, 'invited a collaborator', 'member', email)
+
+    // Send notification
     collaborationModel.getUserDetails(req.user.id).then(owner => {
       sendInviteEmail({
         toEmail: email.trim().toLowerCase(),
         projectTitle: result.projectTitle,
         ownerName: owner.name,
-        inviteeName: null // they may not have a profile name yet
+        inviteeName: null
       }).catch(err => console.error('Invite email failed:', err.message))
     })
 
@@ -33,15 +36,14 @@ exports.inviteToProject = async (req, res) => {
 
 exports.acceptInvite = async (req, res) => {
   try {
-    const projectId = req.params.id
-    const userId = req.user.id
+    const result = await collaborationModel.acceptInvite(req.params.id, req.user.id)
 
-    const result = await collaborationModel.acceptInvite(projectId, userId)
+    await logActivity(req.params.id, req.user.id, 'joined the project', 'member')
 
-    // Send notification — non-blocking
+    // Send notification
     Promise.all([
-      collaborationModel.getProjectOwnerDetails(projectId),
-      collaborationModel.getUserDetails(userId, projectId)
+      collaborationModel.getProjectOwnerDetails(req.params.id),
+      collaborationModel.getUserDetails(req.user.id, req.params.id)
     ]).then(([owner, invitee]) => {
       if (owner.ownerEmail) {
         sendAcceptedEmail({

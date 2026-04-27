@@ -1,5 +1,6 @@
 // backend/controllers/project/moodboard.controller.js
 const moodboardModel = require('../../models/project/moodboard.model')
+const { logActivity } = require('../../models/activity/activity.model')
 
 exports.uploadMoodboardImage = async (req, res) => {
   try {
@@ -8,11 +9,10 @@ exports.uploadMoodboardImage = async (req, res) => {
     await moodboardModel.checkProjectAccess(req.params.id, req.user.id)
 
     const result = await moodboardModel.uploadImage(
-      req.params.id,
-      req.user.id,
-      req.file,
-      req.body.description
+      req.params.id, req.user.id, req.file, req.body.description
     )
+
+    await logActivity(req.params.id, req.user.id, 'uploaded an image', 'image', req.file.originalname)
 
     res.status(201).json({ message: 'Image uploaded', ...result })
   } catch (err) {
@@ -39,6 +39,7 @@ exports.getProjectImages = async (req, res) => {
 exports.deleteProjectImage = async (req, res) => {
   try {
     const result = await moodboardModel.deleteImage(req.params.id, req.params.imageId, req.user.id)
+    await logActivity(req.params.id, req.user.id, 'deleted an image', 'image')
     res.json(result)
   } catch (err) {
     if (err.message === 'Not allowed') return res.status(403).json({ error: err.message })

@@ -50,7 +50,32 @@ async function getUserProjects(userId) {
     new Map([...ownedTagged, ...joinedTagged].map(p => [p.id, p])).values()
   )
 
-  return { projects: unique }
+  const allProjectIds = unique.map(p => p.id)
+
+  let thumbnails = []
+  if (allProjectIds.length > 0) {
+    const { data: imgs, error: imgErr } = await supabaseAdmin
+      .from('project-images')
+      .select('project_id, image_url')
+      .in('project_id', allProjectIds)
+      .order('uploaded_at', { ascending: false })
+
+    if (!imgErr) thumbnails = imgs || []
+  }
+
+  const thumbnailMap = {}
+  for (const img of thumbnails) {
+    if (!thumbnailMap[img.project_id]) {
+      thumbnailMap[img.project_id] = img.image_url
+    }
+  }
+
+  return {
+    projects: unique.map(p => ({
+      ...p,
+      thumbnail_url: thumbnailMap[p.id] || null
+    }))
+  }
 }
 
 async function getProjectById(projectId, userId) {

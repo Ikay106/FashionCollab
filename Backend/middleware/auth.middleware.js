@@ -28,10 +28,9 @@ const requireAuth = async (req, res, next) => {
     }
 
     // Attach the authenticated user to the request object
-    // So controllers can use req.user if needed
     req.user = user;
 
-    next(); // Token is valid → proceed to controller
+    next(); // Token is valid and proceeds to conttroller
   } catch (err) {
     console.error('Auth middleware error:', err);
     return res.status(401).json({ error: 'Authentication failed' });

@@ -1,5 +1,6 @@
 // backend/controllers/project/link.controller.js
 const linkModel = require('../../models/project/link.model')
+const { logActivity } = require('../../models/activity/activity.model')
 
 exports.getProjectLinks = async (req, res) => {
   try {
@@ -23,6 +24,9 @@ exports.addProjectLink = async (req, res) => {
 
     await linkModel.checkProjectAccess(req.params.id, req.user.id)
     const link = await linkModel.addLink(req.params.id, req.user.id, title, url, category)
+
+    await logActivity(req.params.id, req.user.id, 'added a link', 'link', title.trim())
+
     res.status(201).json({ link })
   } catch (err) {
     if (err.message === 'Not allowed') return res.status(403).json({ error: err.message })
@@ -35,6 +39,7 @@ exports.addProjectLink = async (req, res) => {
 exports.deleteProjectLink = async (req, res) => {
   try {
     const result = await linkModel.deleteLink(req.params.linkId, req.user.id)
+    await logActivity(req.params.id, req.user.id, 'deleted a link', 'link')
     res.json(result)
   } catch (err) {
     if (err.message === 'Not allowed') return res.status(403).json({ error: err.message })

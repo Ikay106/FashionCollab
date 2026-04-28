@@ -96,7 +96,7 @@ async function acceptInvite(projectId, userId) {
 async function getPendingInvites(userId) {
   const { data: invites, error } = await supabase
     .from('project_members')
-    .select('id, project_id, invited_at')
+    .select('id, project_id, invited_at, role')
     .eq('user_id', userId)
     .is('accepted_at', null)
     .order('invited_at', { ascending: false })
@@ -109,21 +109,46 @@ async function getPendingInvites(userId) {
   if (projectIds.length > 0) {
     const { data, error: projErr } = await supabaseAdmin
       .from('projects')
-      .select('id, title, description')
+      .select('id, title, description, user_id')
       .in('id', projectIds)
 
     if (projErr) throw projErr
     projects = data || []
   }
 
+  // Fetch owner profiles
+  const ownerIds = [...new Set(projects.map(p => p.user_id))]
+  let profiles = []
+
+  if (ownerIds.length > 0) {
+    const { data, error: profileErr } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, username, avatar_url, role')
+      .in('id', ownerIds)
+
+    if (profileErr) throw profileErr
+    profiles = data || []
+  }
+
+  const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]))
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]))
 
-  return (invites || []).map(invite => ({
-    ...invite,
-    projects: projectMap[invite.project_id] || null
-  }))
-}
+  return (invites || []).map(invite => {
+    const project = projectMap[invite.project_id] || null
+    const ownerProfile = project ? profileMap[project.user_id] : null
 
+    return {
+      ...invite,
+      projects: project,
+      owner: {
+        full_name: ownerProfile?.full_name || null,
+        username: ownerProfile?.username || null,
+        avatar_url: ownerProfile?.avatar_url || null,
+        role: ownerProfile?.role || null
+      }
+    }
+  })
+}
 /**
  * Decline (delete) a pending invite
  */

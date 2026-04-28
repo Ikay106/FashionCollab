@@ -58,6 +58,15 @@
       @next="viewerIndex++; viewerImage = images[viewerIndex]"
     />
 
+    <!-- Upload modal -->
+    <UploadImageModal
+      v-if="showUploadModal"
+      :file="pendingFile"
+      :preview-url="pendingPreviewUrl"
+      @confirm="handleUploadConfirm"
+      @cancel="cancelUpload"
+    />
+
     <!-- Image comments -->
     <div v-if="images.length > 0" class="mt-8 space-y-4">
       <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Image Comments</h3>
@@ -88,6 +97,7 @@
 import { ref } from 'vue'
 import ImageViewerModal from '@/components/ImageViewerModal.vue'
 import MoodboardComments from '@/components/MoodboardComments.vue'
+import UploadImageModal from '@/components/UploadImageModal.vue'
 
 const props = defineProps({
   projectId: { type: [String, Number], required: true },
@@ -99,6 +109,9 @@ const emit = defineEmits(['delete', 'upload'])
 const fileInput = ref(null)
 const viewerImage = ref(null)
 const viewerIndex = ref(0)
+const showUploadModal = ref(false)
+const pendingFile = ref(null)
+const pendingPreviewUrl = ref('')
 
 const triggerUpload = () => fileInput.value?.click()
 
@@ -110,8 +123,32 @@ const openViewer = (index) => {
 const handleFileChange = (event) => {
   const file = event.target.files[0]
   if (!file) return
-  const description = prompt('Add a short description for this image:') || ''
-  emit('upload', { file, description })
+
+  pendingFile.value = file
+  pendingPreviewUrl.value = URL.createObjectURL(file)
+  showUploadModal.value = true
   event.target.value = ''
+}
+
+const handleUploadConfirm = ({ name, description }) => {
+  const ext = pendingFile.value.name.split('.').pop()
+  const nameWithExt = name.endsWith(`.${ext}`) ? name : `${name}.${ext}`
+  
+  const renamedFile = new File([pendingFile.value], nameWithExt, { type: pendingFile.value.type })
+  
+  console.log('original file:', pendingFile.value.name, pendingFile.value.type)
+  console.log('renamed file:', renamedFile.name, renamedFile.type)
+  
+  emit('upload', { file: renamedFile, description })
+  cancelUpload()
+}
+
+const cancelUpload = () => {
+  showUploadModal.value = false
+  pendingFile.value = null
+  if (pendingPreviewUrl.value) {
+    URL.revokeObjectURL(pendingPreviewUrl.value)
+    pendingPreviewUrl.value = ''
+  }
 }
 </script>

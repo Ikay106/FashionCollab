@@ -26,10 +26,7 @@ const requireAuth = async (req, res, next) => {
     if (error || !user) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
-
-    // Attach the authenticated user to the request object
     req.user = user;
-
     next(); 
   } catch (err) {
     console.error('Auth middleware error:', err);

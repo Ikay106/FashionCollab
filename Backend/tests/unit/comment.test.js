@@ -1,0 +1,80 @@
+/**
+ * FashionCollab — Unit Tests: Comment Model
+ */
+
+const mockSingle      = jest.fn()
+const mockMaybeSingle = jest.fn()
+
+const mockDb = {
+  from:        jest.fn(),
+  select:      jest.fn(),
+  insert:      jest.fn(),
+  update:      jest.fn(),
+  delete:      jest.fn(),
+  upsert:      jest.fn(),
+  eq:          jest.fn(),
+  neq:         jest.fn(),
+  in:          jest.fn(),
+  is:          jest.fn(),
+  not:         jest.fn(),
+  order:       jest.fn(),
+  limit:       jest.fn(),
+  single:      mockSingle,
+  maybeSingle: mockMaybeSingle,
+}
+
+const mockChainable = [
+  'from', 'select', 'insert', 'update', 'delete',
+  'upsert', 'eq', 'neq', 'in', 'is', 'not', 'order', 'limit'
+]
+
+mockChainable.forEach(m => { mockDb[m].mockReturnValue(mockDb) })
+
+jest.mock('../../lib/supabase', () => ({
+  supabase:      mockDb,
+  supabaseAdmin: { ...mockDb }
+}))
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: () => ({ auth: { getUser: jest.fn() } })
+}))
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  mockChainable.forEach(m => { mockDb[m].mockReturnValue(mockDb) })
+})
+
+// COMMENT MODEL — deleteComment
+describe('CommentModel.deleteComment', () => {
+  const { deleteComment } = require('../../models/project/comment.model')
+
+  test('throws Not allowed when user is neither author nor project owner', async () => {
+    mockSingle
+      .mockResolvedValueOnce({
+        data: { id: 'comment-1', user_id: 'author-999', image_id: 'img-1' }, error: null
+      })
+      .mockResolvedValueOnce({ data: { user_id: 'owner-456' }, error: null })
+    await expect(deleteComment(1, 'img-1', 'comment-1', 'random-user'))
+      .rejects.toThrow('Not allowed to delete this comment')
+  })
+
+  test('succeeds when user is the comment author', async () => {
+    mockSingle
+      .mockResolvedValueOnce({
+        data: { id: 'comment-1', user_id: 'user-123', image_id: 'img-1' }, error: null
+      })
+      .mockResolvedValueOnce({ data: { user_id: 'owner-456' }, error: null })
+    const result = await deleteComment(1, 'img-1', 'comment-1', 'user-123')
+    expect(result.message).toBe('Comment deleted')
+  })
+
+  test('succeeds when user is the project owner', async () => {
+    mockSingle
+      .mockResolvedValueOnce({
+        data: { id: 'comment-1', user_id: 'author-999', image_id: 'img-1' }, error: null
+      })
+      .mockResolvedValueOnce({ data: { user_id: 'owner-123' }, error: null })
+    const result = await deleteComment(1, 'img-1', 'comment-1', 'owner-123')
+    expect(result.message).toBe('Comment deleted')
+  })
+})

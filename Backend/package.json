@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --verbose",
+    "test:unit": "jest tests/unit --verbose",
+    "test:integration": "jest tests/integration --verbose",
     "dev": "nodemon index.js",
     "start": "node index.js"
   },
@@ -11,6 +13,15 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000,
+    "forceExit": true,
+    "testMatch": [
+      "**/tests/unit/**/*.test.js",
+      "**/tests/integration/**/*.integration.test.js"
+    ]
+  },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1027.0",
     "@supabase/supabase-js": "^2.95.3",
@@ -24,6 +35,8 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2"
   }
 }

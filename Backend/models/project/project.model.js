@@ -63,12 +63,10 @@ async function getUserProjects(userId) {
     if (!imgErr) thumbnails = imgs || []
   }
 
-  const thumbnailMap = {}
-  for (const img of thumbnails) {
-    if (!thumbnailMap[img.project_id]) {
-      thumbnailMap[img.project_id] = img.image_url
-    }
-  }
+const thumbnailMap = thumbnails.reduce((acc, img) => {
+  if (!acc[img.project_id]) acc[img.project_id] = img.image_url
+  return acc
+}, {})
 
   return {
     projects: unique.map(p => ({
@@ -183,10 +181,10 @@ async function getProjectMembers(projectId) {
   const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
 
   const ownerMember = {
-    id: project.user_id,
-    ...(profileMap[project.user_id] || {}),
-    project_role: 'Owner'
-  }
+  id: project.user_id,
+  ...(profileMap[project.user_id] || {}),
+  project_role: 'Owner'
+}
 
   const invitedMembers = (members || []).map(m => ({
     id: m.user_id,

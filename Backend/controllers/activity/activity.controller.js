@@ -4,7 +4,7 @@ const projectModel = require('../../models/project/project.model')
 
 exports.getProjectActivity = async (req, res) => {
   try {
-    // Access check — only owner or member can see activity
+    // Access check viewed by a member or owner only
     await projectModel.getProjectById(req.params.id, req.user.id)
 
     const activities = await activityModel.getProjectActivity(req.params.id)

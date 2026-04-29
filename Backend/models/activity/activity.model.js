@@ -16,7 +16,6 @@ async function logActivity(projectId, userId, action, entityType, entityLabel = 
     })
 
   if (error) {
-    // Never crash the app if activity logging fails — just log it
     console.error('Activity log failed:', error.message)
   }
 }

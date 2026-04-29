@@ -7,7 +7,7 @@ const { supabase, supabaseAdmin } = require('../../lib/supabase')
 async function inviteToProject(projectId, ownerId, inviteEmail, role) {
   const email = inviteEmail.trim().toLowerCase()
 
-  // 1. Verify requester is owner
+  //Verify requester is owner
   const { data: project, error: projErr } = await supabaseAdmin
     .from('projects')
     .select('id, title')
@@ -17,7 +17,7 @@ async function inviteToProject(projectId, ownerId, inviteEmail, role) {
 
   if (projErr || !project) throw new Error('You do not have permission to invite to this project')
 
-  // 2. Find invited user by email
+
   let invitedUser = null
   if (supabaseAdmin?.auth?.admin?.getUserByEmail) {
     const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email)
@@ -31,7 +31,7 @@ async function inviteToProject(projectId, ownerId, inviteEmail, role) {
 
   if (!invitedUser) throw new Error('User not found')
 
-  // 3. Check not already invited/member
+
   const { data: existing, error: existErr } = await supabaseAdmin
     .from('project_members')
     .select('id')
@@ -42,7 +42,6 @@ async function inviteToProject(projectId, ownerId, inviteEmail, role) {
   if (existErr) throw existErr
   if (existing) throw new Error('User is already a member or invited')
 
-  // 4. Create invite
   const { error: insertErr } = await supabaseAdmin
     .from('project_members')
     .insert({
@@ -153,7 +152,6 @@ async function getPendingInvites(userId) {
  * Decline (delete) a pending invite
  */
 async function declineInvite(inviteId, userId) {
-  // Fetch first so we can notify the owner after
   const { data: invite, error: fetchErr } = await supabase
     .from('project_members')
     .select('project_id, user_id')
@@ -173,7 +171,7 @@ async function declineInvite(inviteId, userId) {
 
   if (error) throw error
 
-  return invite // return so controller can send email with project info
+  return invite
 }
 
 /**

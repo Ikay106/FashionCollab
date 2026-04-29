@@ -17,7 +17,10 @@ async function inviteToProject(projectId, ownerId, inviteEmail, role) {
 
   if (projErr || !project) throw new Error('You do not have permission to invite to this project')
 
-
+    const { data: ownerAuth } = await supabaseAdmin.auth.admin.getUserById(ownerId)
+    if (ownerAuth?.user?.email?.toLowerCase() === email) {
+    throw new Error('You cannot invite yourself to your own project')
+    }
   let invitedUser = null
   if (supabaseAdmin?.auth?.admin?.getUserByEmail) {
     const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email)

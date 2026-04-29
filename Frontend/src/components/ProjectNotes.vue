@@ -115,7 +115,7 @@ const newContent = ref('')
 const fetchNotes = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${props.projectId}/notes`, {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/notes`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
@@ -135,7 +135,7 @@ const addNote = async () => {
   saving.value = true
   try {
     await axios.post(
-      `http://localhost:4000/api/projects/${props.projectId}/notes`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/notes`,
       {
         title: newTitle.value.trim(),
         content: newContent.value.trim()
@@ -208,7 +208,7 @@ const getAvatarColor = (item) => {
 const deleteNote = async (noteId) => {
   try {
     await axios.delete(
-      `http://localhost:4000/api/projects/${props.projectId}/notes/${noteId}`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/notes/${noteId}`,
       {
         headers: {
           Authorization: `Bearer ${authStore.token}`

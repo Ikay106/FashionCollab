@@ -117,7 +117,7 @@ const removeMember = async () => {
 
   try {
     await axios.delete(
-      `http://localhost:4000/api/projects/${props.projectId}/members/${memberToRemove.value.id}`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/members/${memberToRemove.value.id}`,
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
     emit('member-removed', memberToRemove.value.id)

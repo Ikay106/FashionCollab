@@ -127,7 +127,7 @@ const newCategory = ref('')
 const fetchLinks = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${props.projectId}/links`, {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/links`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
@@ -147,7 +147,7 @@ const addLink = async () => {
   saving.value = true
   try {
     await axios.post(
-      `http://localhost:4000/api/projects/${props.projectId}/links`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/links`,
       {
         title: newTitle.value.trim(),
         url: newUrl.value.trim(),
@@ -175,7 +175,7 @@ const addLink = async () => {
 const deleteLink = async (linkId) => {
   try {
     await axios.delete(
-      `http://localhost:4000/api/projects/${props.projectId}/links/${linkId}`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/links/${linkId}`,
       {
         headers: {
           Authorization: `Bearer ${authStore.token}`

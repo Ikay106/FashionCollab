@@ -104,7 +104,7 @@ const fetchProject = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${projectId}`)
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`)
     project.value = res.data.project
     isOwner.value = project.value.memberStatus === 'Owner'
     memberStatus.value = isOwner.value ? 'Owner' : 'Collaborator'
@@ -117,7 +117,7 @@ const fetchProject = async () => {
 
 const fetchImages = async () => {
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${projectId}/images`)
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}/images`)
     images.value = res.data.images || []
   } catch (err) {
     console.error('Fetch images error:', err)
@@ -126,7 +126,7 @@ const fetchImages = async () => {
 
 const fetchMembers = async () => {
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${projectId}/members`)
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}/members`)
     members.value = res.data.members || []
   } catch (err) {
     console.error('Fetch members error:', err)
@@ -138,7 +138,7 @@ const handleUpload = async ({ file, description }) => {
   formData.append('image', file)
   formData.append('description', description)
   try {
-    await axios.post(`http://localhost:4000/api/projects/${projectId}/images`, formData, {
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}/images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     await fetchImages()
@@ -150,7 +150,7 @@ const handleUpload = async ({ file, description }) => {
 const deleteImage = async (imageId) => {
   if (!confirm('Delete this image?')) return
   try {
-    await axios.delete(`http://localhost:4000/api/projects/${projectId}/images/${imageId}`)
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}/images/${imageId}`)
     await fetchImages()
   } catch (err) {
     alert(err.response?.data?.error || 'Failed to delete image')
@@ -160,7 +160,7 @@ const deleteImage = async (imageId) => {
 const handleDelete = async () => {
   if (!confirm('Delete this project? This cannot be undone.')) return
   try {
-    await axios.delete(`http://localhost:4000/api/projects/${projectId}`)
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`)
     router.push('/dashboard')
   } catch (err) {
     error.value = err.response?.data?.error || 'Failed to delete project'

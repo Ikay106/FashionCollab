@@ -111,7 +111,7 @@ const error = ref('')
 
 const checkProfileAndRedirect = async () => {
   try {
-    const res = await axios.get('http://localhost:4000/api/profiles/me', {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
@@ -144,12 +144,12 @@ const handleSubmit = async () => {
   try {
     let response
     if (isLogin.value) {
-      response = await axios.post('http://localhost:4000/api/auth/login', {
+      response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         email: email.value,
         password: password.value
       })
     } else {
-      response = await axios.post('http://localhost:4000/api/auth/signup', {
+      response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/signup`, {
         email: email.value,
         password: password.value,
         role: role.value
@@ -167,4 +167,5 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+console.log('ENV URL:', import.meta.env.VITE_API_URL)
 </script>

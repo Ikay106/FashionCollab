@@ -67,7 +67,7 @@ const sendInvite = async () => {
 
   try {
     await axios.post(
-      `http://localhost:4000/api/projects/${props.projectId}/invite`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/invite`,
       { email: inviteEmail.value.trim(), role: inviteRole.value },
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )

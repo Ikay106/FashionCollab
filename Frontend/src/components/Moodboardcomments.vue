@@ -87,7 +87,7 @@ const canDelete = (comment) => {
 const fetchComments = async () => {
   try {
     const res = await axios.get(
-      `http://localhost:4000/api/projects/${props.projectId}/images/${props.image.id}/comments`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/images/${props.image.id}/comments`,
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
     comments.value = res.data.comments || []
@@ -101,7 +101,7 @@ const submitComment = async () => {
   if (!text) return
   try {
     await axios.post(
-      `http://localhost:4000/api/projects/${props.projectId}/images/${props.image.id}/comments`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/images/${props.image.id}/comments`,
       { comment: text },
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
@@ -116,7 +116,7 @@ const deleteComment = async (commentId) => {
   if (!confirm('Delete this comment?')) return
   try {
     await axios.delete(
-      `http://localhost:4000/api/projects/${props.projectId}/images/${props.image.id}/comments/${commentId}`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/images/${props.image.id}/comments/${commentId}`,
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
     // Remove instantly from local list — no refetch needed

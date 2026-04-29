@@ -219,7 +219,7 @@ const fetchProject = async () => {
   error.value = ''
 
   try {
-    const res = await axios.get(`http://localhost:4000/api/projects/${projectId}`, {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
@@ -247,7 +247,7 @@ const fetchProject = async () => {
   }
 
   try {
-    const imgRes = await axios.get(`http://localhost:4000/api/projects/${projectId}/images`, {
+    const imgRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}/images`, {
       headers: {
         Authorization: `Bearer ${authStore.token}`
       }
@@ -270,7 +270,7 @@ const saveProject = async () => {
 
   try {
     const res = await axios.patch(
-      `http://localhost:4000/api/projects/${projectId}`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${projectId}`,
       form.value,
       {
         headers: {
@@ -301,7 +301,7 @@ const handleFileSelect = async (event) => {
     formData.append('image', file)
 
     await axios.post(
-      `http://localhost:4000/api/projects/${projectId}/images`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${projectId}/images`,
       formData,
       {
         headers: {

@@ -116,7 +116,7 @@ const createProject = async () => {
   error.value = ''
 
   try {
-    await axios.post('http://localhost:4000/api/projects', form.value)
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/projects`, form.value)
     router.push('/dashboard')
   } catch (err) {
     error.value = err.response?.data?.error || 'Failed to create project'

@@ -95,7 +95,7 @@ const handleAccept = async () => {
   if (!props.invite) return
   loading.value = true
   try {
-    await axios.patch(`http://localhost:4000/api/projects/${props.invite.project_id}/accept`)
+    await axios.patch(`${import.meta.env.VITE_API_URL}/api/projects/${props.invite.project_id}/accept`)
     emit('accepted', props.invite)
     emit('close')
   } catch (err) {
@@ -110,7 +110,7 @@ const handleDecline = async () => {
   if (!confirm('Decline this invite?')) return
   loading.value = true
   try {
-    await axios.delete(`http://localhost:4000/api/projects/${props.invite.id}/decline`)
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/projects/${props.invite.id}/decline`)
     emit('declined', props.invite)
     emit('close')
   } catch (err) {

@@ -50,8 +50,8 @@ const fetchProfile = async () => {
   loading.value = true
   try {
     const endpoint = isOwnProfile.value
-      ? `http://localhost:4000/api/profiles/me`
-      : `http://localhost:4000/api/profiles/${route.params.id}`
+      ? `${import.meta.env.VITE_API_URL}/api/profiles/me`
+      : `${import.meta.env.VITE_API_URL}/api/profiles/${route.params.id}`
 
     const { data } = await axios.get(endpoint, {
       headers: {
@@ -74,7 +74,7 @@ const fetchProfile = async () => {
 const handleSave = async (updatedData) => {
   try {
     const { data } = await axios.put(
-      'http://localhost:4000/api/profiles/me',
+      '${import.meta.env.VITE_API_URL}/api/profiles/me',
       updatedData,
       {
         headers: {

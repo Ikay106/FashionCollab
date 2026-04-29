@@ -135,7 +135,7 @@ const selectedInvite = ref(null)
 const fetchInvites = async () => {
   loading.value = true
   try {
-    const response = await axios.get('http://localhost:4000/api/projects/invites')
+    const response = await axios.get('${import.meta.env.VITE_API_URL}/api/projects/invites')
     invites.value = response.data.invites || []
   } catch (err) {
     console.error('Fetch invites error:', err)

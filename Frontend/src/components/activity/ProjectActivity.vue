@@ -60,16 +60,18 @@
         </div>
 
         <!-- Entity icon -->
-        <span class="text-lg shrink-0" :title="activity.entity_type">
-          {{ entityIcon(activity.entity_type) }}
-        </span>
+        <font-awesome-icon
+            :icon="entityIcon(activity.entity_type)"
+            class="text-gray-400 mt-1 shrink-0"
+            :title="activity.entity_type"
+          />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted , onUnmounted} from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
@@ -86,7 +88,7 @@ const fetchActivity = async () => {
   loading.value = true
   try {
     const res = await axios.get(
-      `http://localhost:4000/api/projects/${props.projectId}/activity`,
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.projectId}/activity`,
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
     activities.value = res.data.activities || []
@@ -97,15 +99,16 @@ const fetchActivity = async () => {
   }
 }
 
+// entityIcon function
 const entityIcon = (type) => {
   const icons = {
-    image: '🖼️',
-    note: '📝',
-    link: '🔗',
-    member: '👤',
-    comment: '💬'
+    image:   ['fas', 'photo-film'],
+    note:    ['fas', 'note-sticky'],
+    link:    ['fas', 'link'],
+    member:  ['fas', 'user'],
+    comment: ['fas', 'comment']
   }
-  return icons[type] || '📌'
+  return icons[type] || ['fas', 'thumbtack']
 }
 
 const formatDate = (d) => {
@@ -137,8 +140,16 @@ const getAvatarColor = (item) => {
   return colors[Math.abs(hash) % colors.length]
 }
 
-onMounted(fetchActivity)
+let pollInterval = null
 
-// Expose refresh so parent can call it after actions
+onMounted(() => {
+  fetchActivity()
+  pollInterval = setInterval(fetchActivity, 10000)
+})
+
+onUnmounted(() => {
+  clearInterval(pollInterval)
+})
+
 defineExpose({ fetchActivity })
 </script>

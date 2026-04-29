@@ -208,7 +208,7 @@ const handleAvatarSelect = async (event) => {
     formData.append('image', file)
 
     const { data } = await axios.post(
-      'http://localhost:4000/api/profiles/me/avatar',
+      `${import.meta.env.VITE_API_URL}/api/profiles/me/avatar`,
       formData,
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     )

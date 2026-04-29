@@ -7,7 +7,10 @@ exports.inviteToProject = async (req, res) => {
   try {
     const { email, role } = req.body
     if (!email) return res.status(400).json({ error: 'Email required' })
-
+    const ownerDetails = await collaborationModel.getUserDetails(req.user.id)
+      if (ownerDetails.email && ownerDetails.email.toLowerCase() === email.trim().toLowerCase()) {
+        return res.status(400).json({ error: 'You cannot invite yourself to your own project' })
+        }
     const result = await collaborationModel.inviteToProject(
       req.params.id, req.user.id, email, role
     )

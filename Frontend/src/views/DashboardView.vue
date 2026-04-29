@@ -210,7 +210,7 @@ const profileInitials = computed(() => {
 
 const fetchAvatar = async () => {
   try {
-    const { data } = await axios.get('http://localhost:4000/api/profiles/me', {
+    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     })
     profileAvatar.value = data?.avatar_url || null
@@ -233,7 +233,7 @@ const filteredProjects = computed(() => {
 
 const fetchProjects = async () => {
   try {
-    const response = await axios.get('http://localhost:4000/api/projects/my', {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     })
     projects.value = response.data.projects || []

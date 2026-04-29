@@ -74,7 +74,7 @@ const fetchProfile = async () => {
 const handleSave = async (updatedData) => {
   try {
     const { data } = await axios.put(
-      '${import.meta.env.VITE_API_URL}/api/profiles/me',
+      `${import.meta.env.VITE_API_URL}/api/profiles/me`,
       updatedData,
       {
         headers: {

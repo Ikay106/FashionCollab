@@ -262,9 +262,9 @@ Swagger UI is available at `/api/docs` when the backend is running locally, and 
 
 ## Known Limitations
 
-- Free tier on Render means the backend spins down after inactivity — first request after a period of no use may take 30-60 seconds
-- No real-time notifications via WebSockets — the activity feed polls every 10 seconds
-- No dedicated mobile app — the web app is responsive but not mobile-optimised
+- Free tier on Render means the backend spins down after inactivity, first request after a period of no use may take 30-60 seconds
+- No real-time notifications via WebSockets, the activity feed polls every 10 seconds
+
 
 ---
 

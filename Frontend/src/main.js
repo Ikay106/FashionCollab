@@ -17,7 +17,7 @@ app.use(pinia)
 app.use(router)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
-// Auto-add token to every request
+// aded token to evry request
 axios.interceptors.request.use(config => {
   const store = useAuthStore(pinia)
   if (store.token) {
@@ -26,7 +26,7 @@ axios.interceptors.request.use(config => {
   return config
 })
 
-// handle 401 (unauthorized) 
+// handle 401 
 axios.interceptors.response.use(
   response => response,
   error => {

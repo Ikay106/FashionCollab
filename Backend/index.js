@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./swagger');
+const swaggerSpec = require('./swagger/index');
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'FashionCollab API Docs',
   customCss: '.swagger-ui .topbar { background-color: #0f766e; }',
   swaggerOptions: {
-    persistAuthorization: true // keeps your token across page refreshes
+    persistAuthorization: true 
   }
 }))
 

@@ -132,7 +132,7 @@ const checkProfileAndRedirect = async () => {
   } catch (err) {
     console.error('Profile check error:', err)
 
-    // no profile at all → go create one
+    
     router.push('/profile/me?setup=1')
   }
 }

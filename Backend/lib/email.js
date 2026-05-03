@@ -36,7 +36,7 @@ const sendEmail = async ({ to, subject, html }) => {
 }
 
 /**
- * 1. Invite sent → notify the invitee
+ * notify the invitee
  */
 const sendInviteEmail = async ({ toEmail, inviteeName, projectTitle, ownerName, projectId }) => {
   await sendEmail({
@@ -76,7 +76,7 @@ const sendInviteEmail = async ({ toEmail, inviteeName, projectTitle, ownerName, 
 }
 
 /**
- * 2. Invite accepted → notify the project owner
+ * Invite accepted 
  */
 const sendAcceptedEmail = async ({ toEmail, ownerName, inviteeName, inviteeRole, projectTitle, projectId }) => {
   await sendEmail({
@@ -117,7 +117,7 @@ const sendAcceptedEmail = async ({ toEmail, ownerName, inviteeName, inviteeRole,
 }
 
 /**
- * 3. Invite declined → notify the project owner
+ *  Invite declined 
  */
 const sendDeclinedEmail = async ({ toEmail, ownerName, inviteeName, projectTitle }) => {
   await sendEmail({
